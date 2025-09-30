@@ -1,0 +1,65 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+  workflow_dispatch:  # Allows manual triggering from GitHub Actions tab
+
+jobs:
+  build-and-release:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        # Omit cache parameter completely to avoid lock file requirement
+        
+    - name: Clear npm cache
+      run: npm cache clean --force
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Build macOS app
+      run: npm run build:mac
+      env: 
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      
+  
+    - name: Create app archive
+      run: |
+        cd dist/mac-universal
+        zip -r "HBIClipboard-Manager-${{ github.ref_name }}.zip" "HBIClipboard.app"
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: HBIClipboard Manager
+        body: |
+          ## HBIClipboard Manager
+          
+          ### 📦 Installation
+          1. Download `HBIClipboard-Manager-${{ github.ref_name }}.zip`
+          2. Extract the ZIP file
+          3. Move `HBIClipboard.app` to your Applications folder
+          4. Launch from Applications or Spotlight
+          
+          ### ⚙️ First Run Setup
+          - Grant Accessibility permissions when prompted
+          - Use `Option + Command + V` to open clipboard history
+
+          ---
+          **Built with ❤️ for macOS productivity**
+        files: |
+          dist/mac-universal/HBIClipboard-Manager-${{ github.ref_name }}.zip
+        draft: false
+        prerelease: false

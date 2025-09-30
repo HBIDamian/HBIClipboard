@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HBIClipboard Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            /* Prevent text selection */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+
+            /* Prevent dragging of images and links */
+            -webkit-user-drag: none;
+            user-drag: none;
+            -webkit-app-region: no-drag;
+
+            /* Smooth font rendering */
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            -webkit-text-size-adjust: 100%;
+            -moz-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+
+        :root {
+            /* Dark theme (default) */
+            --bg-primary: rgba(32, 32, 32, 0.95);
+            --bg-secondary: rgba(40, 40, 40, 0.9);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --border-primary: rgba(255, 255, 255, 0.1);
+            --shortcut-bg: rgba(0, 120, 212, 0.2);
+            --shortcut-border: #0078d4;
+        }
+
+        /* Light theme */
+        @media (prefers-color-scheme: light) {
+            :root {
+                --bg-primary: rgba(248, 248, 248, 0.95);
+                --bg-secondary: rgba(255, 255, 255, 0.9);
+                --text-primary: #1a1a1a;
+                --text-secondary: rgba(0, 0, 0, 0.8);
+                --text-muted: rgba(0, 0, 0, 0.6);
+                --border-primary: rgba(0, 0, 0, 0.1);
+                --shortcut-bg: rgba(0, 120, 212, 0.1);
+                --shortcut-border: #0078d4;
+            }
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .startup-container {
+            text-align: center;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-primary);
+            background: var(--bg-secondary);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+            max-width: 500px;
+            margin: 20px auto;
+        }
+
+        .icon {
+            width: 56px;
+            height: 56px;
+            margin-bottom: 24px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            filter: brightness(0) invert(1);
+        }
+
+        @media (prefers-color-scheme: light) {
+            .icon {
+                filter: brightness(0) invert(0);
+            }
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .message {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .shortcut {
+            background: var(--shortcut-bg);
+            border: 1px solid var(--shortcut-border);
+            border-radius: 8px;
+            padding: 16px 24px;
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 24px;
+            letter-spacing: 1px;
+            display: inline-block;
+            min-width: 120px;
+        }
+
+        .close-info {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 16px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: var(--border-primary);
+            color: var(--text-primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .settings-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 12px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="startup-container">
+        <button class="close-btn" onclick="closeWindow()">×</button>
+        
+        <img src="../../assets/paperclip-tray.png" alt="HBIClipboard Manager" class="icon">
+        
+        <h1 class="title">HBIClipboard Manager</h1>
+        
+        <p class="message">
+            The HBIClipboard Manager is now running in the background.<br>
+            Access your clipboard history anytime with:
+        </p>
+        
+        <div class="shortcut" id="shortcut-display">⌥⌘V</div>
+        
+        <p class="close-info">This window will close automatically in <span id="countdown">15</span> seconds</p>
+        
+        <p class="settings-hint">You can disable this message in Settings</p>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        // Load and display the current keyboard shortcut
+        async function loadKeyboardShortcut() {
+            try {
+                const shortcut = await ipcRenderer.invoke('get-keyboard-shortcut');
+                const shortcutDisplay = document.getElementById('shortcut-display');
+                
+                // Convert shortcut to display format
+                const displayShortcut = shortcut
+                    .replace('Option', '⌥')
+                    .replace('Control', '⌃')
+                    .replace('Command', '⌘')
+                    .replace('Shift', '⇧')
+                    .replace('+', '');
+                
+                shortcutDisplay.textContent = displayShortcut;
+            } catch (error) {
+                console.error('Error loading keyboard shortcut:', error);
+                // Keep default ⌥⌘V if loading fails
+            }
+        }
+        
+        // Load shortcut when page loads
+        loadKeyboardShortcut();
+        
+        let countdown = 15;
+        const countdownElement = document.getElementById('countdown');
+        
+        const timer = setInterval(() => {
+            countdown--;
+            countdownElement.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(timer);
+                closeWindow();
+            }
+        }, 1000);
+        
+        function closeWindow() {
+            clearInterval(timer);
+            window.close();
+        }
+        
+        // Close on click anywhere
+        document.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('close-btn')) {
+                closeWindow();
+            }
+        });
+        
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeWindow();
+            }
+        });
+    </script>
+</body>
+</html>

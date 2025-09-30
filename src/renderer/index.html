@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clipboard History</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="clipboard-container">
+        <div class="header">
+            <h2>Clipboard</h2>
+            <div class="header-buttons">
+                <button class="settings-btn" onclick="toggleSettings()">⚙️</button>
+                <button class="close-btn" onclick="closeWindow()">×</button>
+            </div>
+        </div>
+        
+        <div id="notificationContainer" class="notification-container" style="display: none;">
+            <div class="notification">
+                <div class="notification-content">
+                    <div class="notification-title" id="notificationTitle"></div>
+                    <div class="notification-message" id="notificationMessage"></div>
+                </div>
+                <div class="notification-icon" id="notificationIcon">✓</div>
+            </div>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search clipboard history..." />
+        </div>
+        
+        <div class="settings-panel" id="settingsPanel" style="display: none;">
+            <div class="settings-header">
+                <h3>Settings</h3>
+            </div>
+            <div class="settings-content">
+                <!-- Clipboard History Section -->
+                <div class="setting-section">
+                    <h4 class="setting-section-title">📋 Clipboard History</h4>
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span>History Size Limit</span>
+                            <select id="historySizeLimit" onchange="updateHistoryLimit()">
+                                <option value="25">25 items</option>
+                                <option value="50" selected>50 items</option>
+                                <option value="100">100 items</option>
+                                <option value="200">200 items</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="setting-item">
+                        <button class="setting-button danger" onclick="clearClipboardHistory()">
+                            🗑️ Clear All History
+                        </button>
+                        <p class="setting-description">Remove all items from clipboard history</p>
+                    </div>
+                </div>
+
+                <!-- Interface & Behavior Section -->
+                <div class="setting-section">
+                    <h4 class="setting-section-title">⚙️ Interface & Behavior</h4>
+                    <div class="setting-item">
+                        <label class="setting-label">
+                            <span>Keyboard Shortcut</span>
+                            <select id="keyboardShortcutSelect" onchange="updateKeyboardShortcut()">
+                                <option value="Option+Command+V" selected>⌥⌘V</option>
+                                <option value="Control+Command+V">⌃⌘V</option>
+                                <option value="Option+Command+C">⌥⌘C</option>
+                                <option value="Control+Command+C">⌃⌘C</option>
+                                <option value="Option+Command+X">⌥⌘X</option>
+                                <option value="Control+Command+X">⌃⌘X</option>
+                                <option value="Option+Shift+V">⌥⇧V</option>
+                                <option value="Control+Shift+V">⌃⇧V</option>
+                            </select>
+                        </label>
+                        <p class="setting-description">Choose your preferred keyboard shortcut</p>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-toggle">
+                            <span>Window Follows Cursor</span>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="windowFollowsCursorToggle" onchange="updateWindowFollowsCursor()" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <p class="setting-description">Open window near cursor (off = top right)</p>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-toggle">
+                            <span>Show Notifications</span>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="notificationsToggle" onchange="updateNotifications()" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <p class="setting-description">Show notifications when copying items</p>
+                    </div>
+                </div>
+
+                <!-- System Integration Section -->
+                <div class="setting-section">
+                    <h4 class="setting-section-title">🖥️ System Integration</h4>
+                    <div class="setting-item">
+                        <label class="setting-toggle">
+                            <span>Start on Boot</span>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="autoLaunchToggle" onchange="updateAutoLaunch()">
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <p class="setting-description">Start automatically when you log in</p>
+                    </div>
+                    <div class="setting-item">
+                        <label class="setting-toggle">
+                            <span>Show Startup Message</span>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="showStartupMessageToggle" onchange="updateShowStartupMessage()" checked>
+                                <span class="toggle-slider"></span>
+                            </div>
+                        </label>
+                        <p class="setting-description">Show welcome message on app start</p>
+                    </div>
+                </div>
+
+                <!-- App Management Section -->
+                <div class="setting-section">
+                    <h4 class="setting-section-title">🚪 App Management</h4>
+                    <div class="setting-item">
+                        <button class="setting-button" onclick="closeApp()">
+                            🚪 Close App
+                        </button>
+                        <p class="setting-description">Exit HBIClipboard Manager</p>
+                    </div>
+                    <div class="setting-item">
+                        <button class="setting-button danger" onclick="closeAndResetApp()">
+                            🔥 Reset All Data & Close
+                        </button>
+                        <p class="setting-description">⚠️ Permanently delete all history and settings</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="clipboard-list" id="clipboardList">
+            <div class="empty-state">
+                <p>No clipboard history yet.</p>
+                <p>Copy text, rich text, or images to get started!</p>
+                <p class="empty-note">Files and folders are not supported.</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <span class="shortcut-hint">⌥⌘V to open • Click to copy to clipboard</span>
+        </div>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
